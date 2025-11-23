@@ -1,113 +1,113 @@
 # 🎓 Certunivertity
-### Certificados Universitarios Verificables en Blockchain (MVP – Demo Técnica 2025)
+### Blockchain-Verifiable University Certificates (MVP – Technical Demo 2025)
 
-Certunivertity es un sistema de demostración que permite a universidades **emitir certificados digitales verificables** mediante la red **Sepolia** de Ethereum.
-Utiliza un token propio llamado **CertUni** que representa **créditos de firma**:
+Certunivertity is a demonstration system that allows universities to **issue verifiable digital certificates** on the **Sepolia** Ethereum network.
+It uses a custom token called **CertUni** that represents **signing credits**:
 
-> **1 CertUni = 1 certificado emitido**
+> **1 CertUni = 1 issued certificate**
 
-Este proyecto combina:
+This project combines:
 
-- **Next.js** (landing + dashboard)
-- **PostgreSQL** (vía Docker, puerto 5334)
-- **Ethereum Sepolia** (smart contracts en Solidity)
-- **Integración Web3 (ethers.js)**
-- **Meta-Transacciones Relayed (gasless)**
-- **Diseño SaaS realista para instituciones educativas**
-
----
-
-## 🧩 Mecanismo de Meta-Transacciones (Gasless)
-
-Este sistema utiliza el patrón de **meta-transacciones relayed**:
-
-> "El usuario **firma** una autorización en MetaMask (sin gas).
-> El backend **envía la transacción** a la blockchain como relayer.
-> El contrato **verifica la firma** y ejecuta la acción en nombre del usuario."
-
-### Beneficios:
-
-- **MetaMask pide confirmación** → el usuario controla la autorización.
-- **No paga gas** → el Sistema lo paga usando su wallet admin.
-- **El certificado queda emitido con la dirección real de la universidad.**
-- **Seguro** → La firma se verifica con ECDSA (`ecrecover`).
-- **UX perfecta** → ni el usuario ni MetaMask necesitan ETH.
+- **Next.js** (landing page + dashboard)
+- **PostgreSQL** (via Docker, port 5334)
+- **Ethereum Sepolia** (Solidity smart contracts)
+- **Web3 Integration (ethers.js)**
+- **Relayed Meta-Transactions (gasless)**
+- **Realistic SaaS design for educational institutions**
 
 ---
 
-## 🚀 Inicio Rápido
+## 🧩 Meta-Transaction Mechanism (Gasless)
 
-### Prerrequisitos
+This system uses the **relayed meta-transaction** pattern:
+
+> "The user **signs** an authorization in MetaMask (no gas required).
+> The backend **sends the transaction** to the blockchain as a relayer.
+> The contract **verifies the signature** and executes the action on behalf of the user."
+
+### Benefits:
+
+- **MetaMask requests confirmation** → the user controls authorization.
+- **No gas payment** → The System pays using its admin wallet.
+- **The certificate is issued with the university's real address.**
+- **Secure** → The signature is verified with ECDSA (`ecrecover`).
+- **Perfect UX** → neither the user nor MetaMask need ETH.
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
 
 - Node.js 18+
-- Docker y Docker Compose
-- MetaMask instalado
-- Una cuenta de Sepolia con ETH de prueba (para el backend)
+- Docker and Docker Compose
+- MetaMask installed
+- A Sepolia account with test ETH (for the backend)
 
-### Instalación
+### Installation
 
-1. **Clonar el repositorio**
+1. **Clone the repository**
 ```bash
 git clone <repository-url>
 cd certunivertity
 ```
 
-2. **Iniciar la base de datos**
+2. **Start the database**
 ```bash
 docker-compose up -d
 ```
 
-3. **Configurar el proyecto de contratos**
+3. **Configure the contracts project**
 ```bash
 cd contracts
 npm install
 cp .env.example .env
-# Editar .env con tus credenciales
+# Edit .env with your credentials
 ```
 
-4. **Desplegar contratos en Sepolia**
+4. **Deploy contracts to Sepolia**
 ```bash
 npx hardhat run scripts/deploy.ts --network sepolia
 ```
 
-5. **Configurar el proyecto web**
+5. **Configure the web project**
 ```bash
 cd ../web
 npm install
 cp .env.example .env.local
-# Editar .env.local con las direcciones de los contratos
+# Edit .env.local with the contract addresses
 ```
 
-6. **Iniciar el servidor de desarrollo**
+6. **Start the development server**
 ```bash
 npm run dev
 ```
 
-Visita [http://localhost:3000](http://localhost:3000)
+Visit [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 📁 Estructura del Proyecto
+## 📁 Project Structure
 
 ```
 certunivertity/
-├── contracts/           # Smart contracts Solidity
+├── contracts/           # Solidity smart contracts
 │   ├── CertUniToken.sol
 │   ├── CertificateAuthority.sol
 │   └── scripts/
-├── web/                 # Aplicación Next.js
+├── web/                 # Next.js application
 │   ├── app/
 │   ├── components/
 │   └── lib/
-├── docs/                # Documentación
+├── docs/                # Documentation
 └── docker-compose.yml   # PostgreSQL
 ```
 
 ---
 
-## 🔑 Variables de Entorno
+## 🔑 Environment Variables
 
-### Contratos (`contracts/.env`)
+### Contracts (`contracts/.env`)
 ```
 SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_KEY
 DEPLOYER_PRIVATE_KEY=your_private_key_here
@@ -127,45 +127,45 @@ NEXTAUTH_URL=http://localhost:3000
 
 ---
 
-## 🦊 Integración con MetaMask
+## 🦊 MetaMask Integration
 
-Cada universidad registra una **dirección de wallet Ethereum (MetaMask)** en la red **Sepolia**.
+Each university registers an **Ethereum wallet address (MetaMask)** on the **Sepolia** network.
 
-### Cómo vincular MetaMask
+### How to link MetaMask
 
-1. Instala MetaMask en tu navegador
-2. Cambia la red a **Sepolia Test Network**
-3. Copia tu dirección (0x...)
-4. Pégala en el formulario de registro
+1. Install MetaMask in your browser
+2. Switch the network to **Sepolia Test Network**
+3. Copy your address (0x...)
+4. Paste it in the registration form
 
-### Ver tus CertUni en MetaMask
+### View your CertUni in MetaMask
 
-Después de reclamar los 5 créditos de prueba:
+After claiming the 5 test credits:
 
-1. Abre MetaMask
-2. Haz clic en **"Import Token"**
-3. Pega la dirección del contrato `CertUniToken`
-4. Verás tu balance de **5 CERTUNI**
-
----
-
-## 🔄 Flujo de Emisión de Certificado
-
-1. Universidad llena el formulario del certificado
-2. Frontend genera un payload EIP-712
-3. MetaMask pide **Firmar** (solo firma, no transacción)
-4. Frontend envía datos + firma al backend
-5. Backend valida créditos y envía transacción a blockchain
-6. Contrato verifica firma con `ecrecover` y emite certificado
+1. Open MetaMask
+2. Click **"Import Token"**
+3. Paste the `CertUniToken` contract address
+4. You'll see your balance of **5 CERTUNI**
 
 ---
 
-## 📜 Licencia
+## 🔄 Certificate Issuance Flow
 
-MVP de demostración para uso educativo y portfolio personal.
+1. University fills out the certificate form
+2. Frontend generates an EIP-712 payload
+3. MetaMask requests **Sign** (signature only, no transaction)
+4. Frontend sends data + signature to backend
+5. Backend validates credits and sends transaction to blockchain
+6. Contract verifies signature with `ecrecover` and issues certificate
 
 ---
 
-## 📞 Soporte
+## 📜 License
 
-Para reportar problemas o hacer preguntas, abre un issue en el repositorio.
+MVP demonstration for educational use and personal portfolio.
+
+---
+
+## 📞 Support
+
+To report issues or ask questions, open an issue in the repository.
