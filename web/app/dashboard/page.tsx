@@ -68,7 +68,8 @@ export default function DashboardPage() {
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      setSuccess(`Successfully claimed 5 CERTUNI tokens! Transaction: ${data.txHash.slice(0, 10)}...`);
+      const tokenAddress = process.env.NEXT_PUBLIC_CERTUNI_TOKEN_ADDRESS || "0x99ef88b491793B58fE19bbC1cf31eFE7d7Bc9b81";
+      setSuccess(`Successfully claimed 5 CERTUNI tokens! Token Address: ${tokenAddress} | Transaction: ${data.txHash.slice(0, 10)}...`);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -190,13 +191,13 @@ export default function DashboardPage() {
             <div className="flex items-start gap-4">
               <div className="text-4xl">📜</div>
               <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-2">Issue Certificate</h3>
+                <h3 className="text-xl font-semibold mb-2 text-gray-900">Issue Certificate</h3>
                 <p className="text-gray-600 mb-4">
                   Create a new blockchain-verified certificate for a student
                 </p>
                 <Link
                   href="/dashboard/issue"
-                  className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                  className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   Issue New Certificate
                 </Link>
@@ -208,13 +209,13 @@ export default function DashboardPage() {
             <div className="flex items-start gap-4">
               <div className="text-4xl">🔍</div>
               <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-2">View Certificates</h3>
+                <h3 className="text-xl font-semibold mb-2 text-gray-900">View Certificates</h3>
                 <p className="text-gray-600 mb-4">
                   See all certificates issued by your institution
                 </p>
                 <Link
                   href="/dashboard/certificates"
-                  className="inline-block bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                  className="inline-block bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-900 transition-colors font-medium"
                 >
                   View All
                 </Link>

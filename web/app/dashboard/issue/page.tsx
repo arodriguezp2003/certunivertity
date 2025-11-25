@@ -318,7 +318,7 @@ export default function IssueCertificatePage() {
                 required
                 value={formData.studentName}
                 onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 placeholder="e.g., John Michael Smith"
               />
               <p className="mt-1 text-xs text-gray-500">
@@ -336,7 +336,7 @@ export default function IssueCertificatePage() {
                 required
                 value={formData.studentEmail}
                 onChange={(e) => setFormData({ ...formData, studentEmail: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 placeholder="student@email.com"
               />
               <p className="mt-1 text-xs text-gray-500">
@@ -354,7 +354,7 @@ export default function IssueCertificatePage() {
                 required
                 value={formData.certificateName}
                 onChange={(e) => setFormData({ ...formData, certificateName: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 placeholder="e.g., Bachelor of Science in Computer Science"
               />
             </div>
@@ -368,7 +368,7 @@ export default function IssueCertificatePage() {
                 type="date"
                 value={formData.expirationDate}
                 onChange={(e) => setFormData({ ...formData, expirationDate: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
               />
               <p className="mt-1 text-xs text-gray-500">
                 Leave empty if certificate never expires
@@ -384,7 +384,7 @@ export default function IssueCertificatePage() {
                 type="url"
                 value={formData.metadataURI}
                 onChange={(e) => setFormData({ ...formData, metadataURI: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 placeholder="https://... or ipfs://..."
               />
               <p className="mt-1 text-xs text-gray-500">
