@@ -25,6 +25,7 @@
     "@types/react-dom": "^19",
     "@types/bcryptjs": "^2.4.6",
     "@types/qrcode": "^1.5.5",
+    "@types/pg": "^8.11.10",
     "typescript": "^5",
     "eslint": "^9",
     "eslint-config-next": "^15.1.0",

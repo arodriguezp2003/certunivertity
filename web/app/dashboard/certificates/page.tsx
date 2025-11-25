@@ -133,7 +133,7 @@ export default function CertificatesListPage() {
               No Certificates Yet
             </h3>
             <p className="text-gray-600 mb-6">
-              You haven't issued any certificates yet. Start by issuing your first one!
+              You haven&apos;t issued any certificates yet. Start by issuing your first one!
             </p>
             <Link
               href="/dashboard/issue"
