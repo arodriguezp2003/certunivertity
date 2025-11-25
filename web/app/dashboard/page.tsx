@@ -77,6 +77,32 @@ export default function DashboardPage() {
     }
   };
 
+  const handleAddTokenToMetaMask = async () => {
+    try {
+      const tokenAddress = process.env.NEXT_PUBLIC_CERTUNI_TOKEN_ADDRESS || "0x99ef88b491793B58fE19bbC1cf31eFE7d7Bc9b81";
+      
+      // @ts-ignore
+      const wasAdded = await window.ethereum.request({
+        method: 'wallet_watchAsset',
+        params: {
+          type: 'ERC20',
+          options: {
+            address: tokenAddress,
+            symbol: 'CERTUNI',
+            decimals: 18,
+            image: '', // Puedes agregar una URL de imagen del token aquí
+          },
+        },
+      });
+
+      if (wasAdded) {
+        setSuccess('CERTUNI token added to MetaMask successfully!');
+      }
+    } catch (err: any) {
+      setError('Failed to add token to MetaMask: ' + err.message);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("user");
     router.push("/");
@@ -161,6 +187,13 @@ export default function DashboardPage() {
               {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
             </p>
             <p className="text-xs text-gray-500 mt-1">Sepolia Network</p>
+            <button
+              onClick={handleAddTokenToMetaMask}
+              className="mt-3 text-xs bg-orange-500 text-white px-3 py-1.5 rounded hover:bg-orange-600 transition-colors flex items-center gap-1"
+              title="Add CERTUNI token to MetaMask"
+            >
+              🦊 Add Token to MetaMask
+            </button>
           </div>
         </div>
 
