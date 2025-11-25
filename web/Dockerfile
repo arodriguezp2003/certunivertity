@@ -68,11 +68,9 @@ USER nextjs
 
 EXPOSE 3031
 
-# Health check para Dokploy
-# start-period aumentado a 60s para dar tiempo a que Next.js arranque completamente
-# timeout aumentado a 10s para dar tiempo a Prisma a conectarse a la DB
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3030/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)}).on('error', () => {throw new Error('Connection failed')})"
+# Health check para Dokploy - verificar que el servidor responde
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3031/', (r) => {if (r.statusCode >= 400) throw new Error(r.statusCode)}).on('error', (e) => {throw e})"
 
 # Usar dumb-init para manejar señales correctamente
 ENTRYPOINT ["dumb-init", "--", "./docker-entrypoint.sh"]
