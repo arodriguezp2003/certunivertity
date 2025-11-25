@@ -20,6 +20,8 @@ export default function DashboardPage() {
   const [claimingCredits, setClaimingCredits] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  
+  const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_CERTUNI_TOKEN_ADDRESS || "0x99ef88b491793B58fE19bbC1cf31eFE7d7Bc9b81";
 
   useEffect(() => {
     // Check if user is logged in
@@ -68,8 +70,7 @@ export default function DashboardPage() {
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      const tokenAddress = process.env.NEXT_PUBLIC_CERTUNI_TOKEN_ADDRESS || "0x99ef88b491793B58fE19bbC1cf31eFE7d7Bc9b81";
-      setSuccess(`Successfully claimed 5 CERTUNI tokens! Token Address: ${tokenAddress} | Transaction: ${data.txHash.slice(0, 10)}...`);
+      setSuccess(`Successfully claimed 5 CERTUNI tokens! Token Address: ${TOKEN_ADDRESS} | Transaction: ${data.txHash.slice(0, 10)}...`);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -79,15 +80,13 @@ export default function DashboardPage() {
 
   const handleAddTokenToMetaMask = async () => {
     try {
-      const tokenAddress = process.env.NEXT_PUBLIC_CERTUNI_TOKEN_ADDRESS || "0x99ef88b491793B58fE19bbC1cf31eFE7d7Bc9b81";
-      
       // @ts-ignore
       const wasAdded = await window.ethereum.request({
         method: 'wallet_watchAsset',
         params: {
           type: 'ERC20',
           options: {
-            address: tokenAddress,
+            address: TOKEN_ADDRESS,
             symbol: 'CERTUNI',
             decimals: 18,
             image: '', // Puedes agregar una URL de imagen del token aquí
@@ -96,10 +95,12 @@ export default function DashboardPage() {
       });
 
       if (wasAdded) {
-        setSuccess('CERTUNI token added to MetaMask successfully!');
+        setSuccess(`✅ Token approved in MetaMask! Now check your MetaMask Assets tab. If you don't see CERTUNI there, try the Manual Import method (Option 2) below. Your balance: ${user?.credits || 0} CERTUNI`);
+      } else {
+        setError('Token import was cancelled or rejected in MetaMask.');
       }
     } catch (err: any) {
-      setError('Failed to add token to MetaMask: ' + err.message);
+      setError('Failed to add token to MetaMask. Please try the Manual Import method (Option 2) below. Error: ' + err.message);
     }
   };
 
@@ -258,7 +259,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Info Box */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-4">
           <h3 className="font-semibold text-blue-900 mb-3">💡 How it works:</h3>
           <ul className="space-y-2 text-blue-800">
             <li className="flex items-start gap-2">
@@ -278,6 +279,49 @@ export default function DashboardPage() {
               <span>Anyone can verify it using the certificate ID or QR code</span>
             </li>
           </ul>
+        </div>
+
+        {/* MetaMask Token Info Box */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
+          <h3 className="font-semibold text-amber-900 mb-3">🦊 Add CERTUNI to MetaMask</h3>
+          <div className="space-y-3 text-amber-800">
+            <p className="font-medium">Option 1: Automatic (Recommended)</p>
+            <ol className="list-decimal list-inside space-y-2 ml-2 mb-4">
+              <li>Click the button below to add the token</li>
+              <li>Approve when MetaMask asks</li>
+              <li>Go to MetaMask → Assets tab to see your balance</li>
+            </ol>
+            
+            <div className="bg-amber-100 border border-amber-300 rounded p-3 mb-4">
+              <p className="font-medium mb-2">⚠️ Token not showing after adding?</p>
+              <p className="text-sm">Try <strong>Option 2</strong> (Manual Import) below</p>
+            </div>
+
+            <p className="font-medium">Option 2: Manual Import</p>
+            <ol className="list-decimal list-inside space-y-2 ml-2 text-sm">
+              <li>Open MetaMask and go to the <strong>Assets</strong> tab</li>
+              <li>Scroll down and click <strong>&quot;Import tokens&quot;</strong></li>
+              <li>Click on <strong>&quot;Custom token&quot;</strong> tab</li>
+              <li>Paste this address: <code className="bg-amber-100 px-1 rounded text-xs">{TOKEN_ADDRESS}</code></li>
+              <li>Token Symbol (CERTUNI) and Decimals (18) should auto-fill</li>
+              <li>Click <strong>&quot;Add custom token&quot;</strong> then <strong>&quot;Import&quot;</strong></li>
+            </ol>
+
+            <div className="mt-4 pt-4 border-t border-amber-200">
+              <button
+                onClick={handleAddTokenToMetaMask}
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                🦊 Option 1: Add CERTUNI (Automatic)
+              </button>
+              <p className="text-sm text-amber-700 mt-3 text-center">
+                Token Contract: <code className="bg-amber-100 px-2 py-1 rounded text-xs select-all">{TOKEN_ADDRESS}</code>
+              </p>
+              <p className="text-xs text-amber-600 mt-1 text-center">
+                Click the address above to copy it for manual import
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
