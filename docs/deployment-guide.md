@@ -1,46 +1,46 @@
-# Guía de Deployment - Certunivertity
+# Deployment Guide - Certunivertity
 
-## Requisitos Previos
+## Prerequisites
 
-### Software Necesario
-- Node.js 18+ instalado
-- Docker y Docker Compose instalados
-- Git instalado
-- MetaMask extension instalada en el navegador
+### Required Software
+- Node.js 18+ installed
+- Docker and Docker Compose installed
+- Git installed
+- MetaMask extension installed in browser
 
-### Cuentas y Servicios
-- Cuenta en Infura o Alchemy (para RPC de Sepolia)
-- Wallet con ETH de Sepolia testnet (~0.1 ETH recomendado)
-- Cuenta de Etherscan (opcional, para verificación de contratos)
+### Accounts and Services
+- Infura or Alchemy account (for Sepolia RPC)
+- Wallet with Sepolia testnet ETH (~0.1 ETH recommended)
+- Etherscan account (optional, for contract verification)
 
 ---
 
-## Paso 1: Obtener ETH de Sepolia Testnet
+## Step 1: Obtain Sepolia Testnet ETH
 
-### Opción A: Faucets Públicos
-1. Visita uno de estos faucets:
+### Option A: Public Faucets
+1. Visit one of these faucets:
    - https://sepoliafaucet.com/
    - https://www.alchemy.com/faucets/ethereum-sepolia
    - https://faucet.quicknode.com/ethereum/sepolia
 
-2. Conecta tu wallet de MetaMask
-3. Solicita 0.1 ETH de Sepolia
-4. Espera confirmación (1-2 minutos)
+2. Connect your MetaMask wallet
+3. Request 0.1 Sepolia ETH
+4. Wait for confirmation (1-2 minutes)
 
-### Opción B: Bridging desde mainnet (requiere ETH real)
-1. Usa un bridge oficial si tienes ETH en mainnet
-2. No recomendado para testing
+### Option B: Bridging from mainnet (requires real ETH)
+1. Use an official bridge if you have ETH on mainnet
+2. Not recommended for testing
 
 ---
 
-## Paso 2: Clonar y Configurar el Proyecto
+## Step 2: Clone and Configure the Project
 
 ```bash
-# Clonar el repositorio
+# Clone the repository
 git clone <repository-url>
 cd certunivertity
 
-# Estructura del proyecto
+# Project structure
 tree -L 1
 # certunivertity/
 # ├── contracts/
@@ -52,128 +52,128 @@ tree -L 1
 
 ---
 
-## Paso 3: Levantar la Base de Datos
+## Step 3: Start the Database
 
 ```bash
-# Iniciar PostgreSQL en Docker
+# Start PostgreSQL in Docker
 docker-compose up -d
 
-# Verificar que está corriendo
+# Verify it's running
 docker ps
-# Deberías ver: certunivertity_postgres
+# You should see: certunivertity_postgres
 
-# Probar conexión
+# Test connection
 docker exec -it certunivertity_postgres psql -U certuni_user -d certunivertity_db
-# Si conecta, escribe \q para salir
+# If it connects, type \q to exit
 ```
 
 ### Troubleshooting
 - **Error: port 5334 already in use**
-  - Cambia el puerto en `docker-compose.yml` línea 8
-  - Actualiza también `DATABASE_URL` en `.env.local`
+  - Change the port in `docker-compose.yml` line 8
+  - Also update `DATABASE_URL` in `.env.local`
 
 - **Error: permission denied**
-  - Ejecuta `sudo docker-compose up -d`
+  - Run `sudo docker-compose up -d`
 
 ---
 
-## Paso 4: Desplegar Smart Contracts
+## Step 4: Deploy Smart Contracts
 
 ```bash
 cd contracts
 
-# Instalar dependencias
+# Install dependencies
 npm install
 
-# Crear archivo .env
+# Create .env file
 cp .env.example .env
 
-# Editar .env con tus credenciales
+# Edit .env with your credentials
 nano .env
 ```
 
-### Contenido de `contracts/.env`
+### Contents of `contracts/.env`
 ```bash
-SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/TU_INFURA_PROJECT_ID
-DEPLOYER_PRIVATE_KEY=tu_clave_privada_sin_0x
-ETHERSCAN_API_KEY=tu_api_key_de_etherscan
+SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID
+DEPLOYER_PRIVATE_KEY=your_private_key_without_0x
+ETHERSCAN_API_KEY=your_etherscan_api_key
 ```
 
-⚠️ **IMPORTANTE**:
-- La clave privada debe tener ETH de Sepolia
-- Nunca subas el archivo `.env` a GitHub
-- Usa una wallet de testing, no tu wallet principal
+⚠️ **IMPORTANT**:
+- The private key must have Sepolia ETH
+- Never commit the `.env` file to GitHub
+- Use a testing wallet, not your main wallet
 
-### Compilar y Desplegar
+### Compile and Deploy
 
 ```bash
-# Compilar contratos
+# Compile contracts
 npm run compile
 
-# Verificar que compiló correctamente
+# Verify compilation succeeded
 ls artifacts/contracts/
 
-# Desplegar a Sepolia
+# Deploy to Sepolia
 npm run deploy:sepolia
 
-# Output esperado:
+# Expected output:
 # ✅ CertUniToken deployed to: 0xABC...
 # ✅ CertificateAuthority deployed to: 0xDEF...
 ```
 
-### Guardar las Direcciones
-Copia las direcciones de los contratos desplegados. Las necesitarás en el siguiente paso.
+### Save the Addresses
+Copy the deployed contract addresses. You'll need them in the next step.
 
 ```bash
-# Las direcciones también se guardan en:
+# Addresses are also saved in:
 cat deployments/sepolia.json
 ```
 
-### Verificar Contratos en Etherscan (Opcional)
+### Verify Contracts on Etherscan (Optional)
 
 ```bash
 # CertUniToken
-npx hardhat verify --network sepolia <DIRECCION_CERTUNI_TOKEN>
+npx hardhat verify --network sepolia <CERTUNI_TOKEN_ADDRESS>
 
 # CertificateAuthority
-npx hardhat verify --network sepolia <DIRECCION_CERTIFICATE_AUTHORITY>
+npx hardhat verify --network sepolia <CERTIFICATE_AUTHORITY_ADDRESS>
 ```
 
 ---
 
-## Paso 5: Configurar el Frontend
+## Step 5: Configure the Frontend
 
 ```bash
 cd ../web
 
-# Instalar dependencias
+# Install dependencies
 npm install
 
-# Crear archivo .env.local
+# Create .env.local file
 cp .env.example .env.local
 
-# Editar .env.local
+# Edit .env.local
 nano .env.local
 ```
 
-### Contenido de `web/.env.local`
+### Contents of `web/.env.local`
 
 ```bash
 # Database
 DATABASE_URL=postgres://certuni_user:certuni_password@localhost:5334/certunivertity_db
 
-# Smart Contract Addresses (usa las direcciones del paso 4)
+# Smart Contract Addresses (use addresses from step 4)
 NEXT_PUBLIC_CERTUNI_TOKEN_ADDRESS=0xABC...
 NEXT_PUBLIC_CERTIFICATE_AUTHORITY_ADDRESS=0xDEF...
 
 # Blockchain RPC
-SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/TU_INFURA_PROJECT_ID
-NEXT_PUBLIC_SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/TU_INFURA_PROJECT_ID
+SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID
+NEXT_PUBLIC_SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID
 
-# Backend Wallet (la misma que desplegó los contratos, o una diferente con ETH)
-BACKEND_PRIVATE_KEY=tu_clave_privada_del_backend_sin_0x
+# Backend Wallet (same as deployed contracts, or different one with ETH)
+BACKEND_PRIVATE_KEY=your_backend_private_key_without_0x
 
-# NextAuth (genera un secreto)
+# NextAuth (generate a secret)
 NEXTAUTH_SECRET=$(openssl rand -base64 32)
 NEXTAUTH_URL=http://localhost:3000
 
@@ -181,247 +181,247 @@ NEXTAUTH_URL=http://localhost:3000
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-### Generar NEXTAUTH_SECRET
+### Generate NEXTAUTH_SECRET
 
 ```bash
-# En Mac/Linux
+# On Mac/Linux
 openssl rand -base64 32
 
-# Copia el output y pégalo en .env.local
+# Copy the output and paste it in .env.local
 ```
 
 ---
 
-## Paso 6: Inicializar la Base de Datos
+## Step 6: Initialize the Database
 
-El schema se crea automáticamente la primera vez que ejecutas la aplicación, pero puedes hacerlo manualmente:
+The schema is created automatically the first time you run the application, but you can do it manually:
 
 ```bash
-# Crear un script de inicialización (opcional)
-# La app lo hará automáticamente en el primer run
+# Create an initialization script (optional)
+# The app will do it automatically on first run
 ```
 
 ---
 
-## Paso 7: Ejecutar el Proyecto
+## Step 7: Run the Project
 
 ```bash
-# Desde la carpeta web/
+# From the web/ folder
 npm run dev
 
-# Output esperado:
+# Expected output:
 # ▲ Next.js 15.1.0
 # - Local:        http://localhost:3000
 # - Environments: .env.local
 ```
 
-Abre tu navegador en [http://localhost:3000](http://localhost:3000)
+Open your browser at [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## Paso 8: Probar el Flujo Completo
+## Step 8: Test the Complete Flow
 
-### 8.1 Registrar una Universidad
+### 8.1 Register a University
 
-1. Haz clic en "Comenzar Gratis"
-2. Completa el formulario:
-   - Nombre: Universidad de Prueba
-   - Email: test@universidad.edu
+1. Click "Get Started Free"
+2. Complete the form:
+   - Name: Test University
+   - Email: test@university.edu
    - Password: Test1234!
-   - Wallet: Tu dirección de MetaMask en Sepolia
-3. Haz clic en "Registrar"
-4. Deberías ser redirigido al dashboard
+   - Wallet: Your MetaMask address on Sepolia
+3. Click "Register"
+4. You should be redirected to the dashboard
 
-### 8.2 Obtener Créditos Gratuitos
+### 8.2 Obtain Free Credits
 
-1. En el dashboard, haz clic en "Obtener 5 créditos de prueba"
-2. Espera la confirmación de la transacción
-3. Tu balance debería cambiar a 5 CERTUNI
-4. El botón debería deshabilitarse
+1. In the dashboard, click "Get 5 test credits"
+2. Wait for transaction confirmation
+3. Your balance should change to 5 CERTUNI
+4. The button should become disabled
 
-### 8.3 Ver Tokens en MetaMask
+### 8.3 View Tokens in MetaMask
 
-1. Abre MetaMask
-2. Asegúrate de estar en Sepolia
-3. Haz clic en "Import tokens"
-4. Pega la dirección del contrato CertUniToken
-5. Deberías ver 5.00 CERTUNI
+1. Open MetaMask
+2. Make sure you're on Sepolia
+3. Click "Import tokens"
+4. Paste the CertUniToken contract address
+5. You should see 5.00 CERTUNI
 
-### 8.4 Emitir un Certificado
+### 8.4 Issue a Certificate
 
-1. En el dashboard, haz clic en "Emitir Certificado"
-2. Completa:
-   - Nombre: Juan Pérez
+1. In the dashboard, click "Issue Certificate"
+2. Complete:
+   - Name: Juan Pérez
    - Email: juan.perez@estudiante.edu
-   - Certificado: Ingeniería en Informática
-   - Expiración: (opcional)
-3. Haz clic en "Firmar y Emitir"
-4. MetaMask se abrirá pidiendo que **firmes** (no envíes transacción)
-5. Acepta la firma
-6. Espera confirmación
-7. Deberías ver el certificado en el historial
-8. Tu balance debería ser 4 CERTUNI
+   - Certificate: Computer Engineering
+   - Expiration: (optional)
+3. Click "Sign and Issue"
+4. MetaMask will open asking you to **sign** (not send transaction)
+5. Accept the signature
+6. Wait for confirmation
+7. You should see the certificate in history
+8. Your balance should be 4 CERTUNI
 
-### 8.5 Verificar el Certificado
+### 8.5 Verify the Certificate
 
-1. Copia el `certId` del certificado emitido
-2. Abre `http://localhost:3000/verify?certId=<CERT_ID>`
-3. Deberías ver:
-   - Estado: ✅ Válido
-   - Universidad emisora
-   - Nombre del certificado
-   - Fecha de emisión
+1. Copy the `certId` of the issued certificate
+2. Open `http://localhost:3000/verify?certId=<CERT_ID>`
+3. You should see:
+   - Status: ✅ Valid
+   - Issuing university
+   - Certificate name
+   - Issue date
 
 ---
 
-## Troubleshooting Común
+## Common Troubleshooting
 
 ### Error: "Network not supported"
-- Verifica que MetaMask esté en Sepolia
-- Verifica que `NEXT_PUBLIC_SEPOLIA_RPC_URL` esté configurado
+- Verify that MetaMask is on Sepolia
+- Verify that `NEXT_PUBLIC_SEPOLIA_RPC_URL` is configured
 
 ### Error: "Insufficient funds for gas"
-- Tu `BACKEND_PRIVATE_KEY` no tiene ETH de Sepolia
-- Consigue más ETH del faucet
+- Your `BACKEND_PRIVATE_KEY` doesn't have Sepolia ETH
+- Get more ETH from the faucet
 
 ### Error: "Contract not deployed"
-- Verifica las direcciones en `.env.local`
-- Asegúrate de que los contratos se desplegaron correctamente
-- Revisa `contracts/deployments/sepolia.json`
+- Verify the addresses in `.env.local`
+- Make sure contracts deployed successfully
+- Check `contracts/deployments/sepolia.json`
 
 ### Error: "Database connection failed"
-- Verifica que Docker esté corriendo: `docker ps`
-- Verifica el puerto 5334: `lsof -i :5334`
-- Reinicia el contenedor: `docker-compose restart`
+- Verify Docker is running: `docker ps`
+- Verify port 5334: `lsof -i :5334`
+- Restart container: `docker-compose restart`
 
 ### Error: "Invalid signature"
-- Verifica que la wallet que firma sea la misma registrada
-- Verifica que el `chainId` sea 11155111 (Sepolia)
+- Verify the signing wallet is the same as registered
+- Verify `chainId` is 11155111 (Sepolia)
 
-### MetaMask no pide firma
-- Verifica que MetaMask esté conectado al sitio
-- Revisa la consola del navegador para errores
-- Asegúrate de estar en Sepolia
+### MetaMask doesn't request signature
+- Verify MetaMask is connected to the site
+- Check browser console for errors
+- Make sure you're on Sepolia
 
 ---
 
-## Deployment a Producción (Futuro)
+## Production Deployment (Future)
 
-### Opción A: Vercel + Serverless PostgreSQL
+### Option A: Vercel + Serverless PostgreSQL
 
 ```bash
-# Instalar Vercel CLI
+# Install Vercel CLI
 npm i -g vercel
 
 # Deploy
 cd web
 vercel
 
-# Configurar variables de entorno en Vercel dashboard
-# Usar PostgreSQL de Vercel, Supabase, o Railway
+# Configure environment variables in Vercel dashboard
+# Use PostgreSQL from Vercel, Supabase, or Railway
 ```
 
-### Opción B: VPS (AWS, DigitalOcean)
+### Option B: VPS (AWS, DigitalOcean)
 
 ```bash
-# Conectar a tu VPS
+# Connect to your VPS
 ssh user@your-server.com
 
-# Clonar repo
+# Clone repo
 git clone <repo-url>
 cd certunivertity
 
-# Usar Docker Compose para todo
+# Use Docker Compose for everything
 docker-compose -f docker-compose.prod.yml up -d
 
-# Configurar Nginx como reverse proxy
+# Configure Nginx as reverse proxy
 ```
 
-### Opción C: Render / Railway
+### Option C: Render / Railway
 
-1. Conecta tu repositorio de GitHub
-2. Configura las variables de entorno
-3. Deploy automático con cada push
+1. Connect your GitHub repository
+2. Configure environment variables
+3. Automatic deploy with each push
 
 ---
 
-## Seguridad en Producción
+## Production Security
 
-### ⚠️ CRÍTICO:
+### ⚠️ CRITICAL:
 
-1. **Nunca expongas claves privadas**
-   - Usa variables de entorno
-   - Usa servicios como AWS Secrets Manager
+1. **Never expose private keys**
+   - Use environment variables
+   - Use services like AWS Secrets Manager
 
-2. **Usa HTTPS**
-   - Let's Encrypt gratuito
-   - Cloudflare para protección DDoS
+2. **Use HTTPS**
+   - Free Let's Encrypt
+   - Cloudflare for DDoS protection
 
 3. **Rate limiting**
-   - Limita requests a API routes
-   - Usa Redis para tracking
+   - Limit API route requests
+   - Use Redis for tracking
 
-4. **Validación de inputs**
-   - Siempre valida en backend
-   - Usa Zod o similar
+4. **Input validation**
+   - Always validate in backend
+   - Use Zod or similar
 
-5. **Logging y monitoreo**
-   - Sentry para errores
-   - Datadog / New Relic para performance
+5. **Logging and monitoring**
+   - Sentry for errors
+   - Datadog / New Relic for performance
 
-6. **Backups de DB**
-   - Backups automáticos diarios
-   - Test de restauración mensual
+6. **DB backups**
+   - Daily automatic backups
+   - Monthly restoration tests
 
 ---
 
-## Migración a Mainnet
+## Mainnet Migration
 
-### Consideraciones:
+### Considerations:
 
-1. **Costos de gas**:
-   - Emisión de certificado: ~150,000 gas
-   - A $30/ETH y 20 gwei: ~$0.09 por certificado
-   - Multiplica por tu volumen esperado
+1. **Gas costs**:
+   - Certificate issuance: ~150,000 gas
+   - At $30/ETH and 20 gwei: ~$0.09 per certificate
+   - Multiply by your expected volume
 
-2. **L2 alternativas**:
-   - Polygon: ~1000x más barato
-   - Arbitrum: ~100x más barato
-   - Optimism: ~100x más barato
+2. **L2 alternatives**:
+   - Polygon: ~1000x cheaper
+   - Arbitrum: ~100x cheaper
+   - Optimism: ~100x cheaper
 
-3. **Auditoría de contratos**:
-   - Contratar auditoría profesional
+3. **Contract audit**:
+   - Hire professional audit
    - OpenZeppelin, CertiK, etc.
 
-4. **Testing extensivo**:
-   - Unit tests con Hardhat
+4. **Extensive testing**:
+   - Unit tests with Hardhat
    - Integration tests
-   - Testnet durante 1-2 meses
+   - Testnet for 1-2 months
 
 ---
 
-## Mantenimiento
+## Maintenance
 
-### Tareas Semanales
-- Revisar logs de errores
-- Monitorear costos de gas
-- Backup de base de datos
+### Weekly Tasks
+- Review error logs
+- Monitor gas costs
+- Database backup
 
-### Tareas Mensuales
-- Actualizar dependencias de npm
-- Revisar vulnerabilidades: `npm audit`
-- Analizar métricas de uso
+### Monthly Tasks
+- Update npm dependencies
+- Review vulnerabilities: `npm audit`
+- Analyze usage metrics
 
-### Tareas Trimestrales
-- Auditoría de seguridad
-- Optimización de costos
-- Actualización de documentación
+### Quarterly Tasks
+- Security audit
+- Cost optimization
+- Documentation updates
 
 ---
 
-## Recursos Adicionales
+## Additional Resources
 
-- [Documentación de Hardhat](https://hardhat.org/docs)
+- [Hardhat Documentation](https://hardhat.org/docs)
 - [Next.js Documentation](https://nextjs.org/docs)
 - [ethers.js v6](https://docs.ethers.org/v6/)
 - [EIP-712 Specification](https://eips.ethereum.org/EIPS/eip-712)
@@ -429,14 +429,14 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ---
 
-## Soporte
+## Support
 
-Para preguntas o problemas:
-1. Revisa los logs: `docker logs certunivertity_postgres`
-2. Revisa la consola del navegador (F12)
-3. Verifica transacciones en Sepolia Etherscan
-4. Abre un issue en el repositorio de GitHub
+For questions or issues:
+1. Check the logs: `docker logs certunivertity_postgres`
+2. Check browser console (F12)
+3. Verify transactions on Sepolia Etherscan
+4. Open an issue on the GitHub repository
 
 ---
 
-¡Felicidades! 🎉 Ahora tienes Certunivertity corriendo localmente.
+Congratulations! 🎉 You now have Certunivertity running locally.

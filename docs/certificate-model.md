@@ -1,114 +1,114 @@
-# Modelo de Datos del Certificado
+# Certificate Data Model
 
-## Visión General
+## Overview
 
-El sistema Certunivertity utiliza un **modelo híbrido** que separa datos on-chain (blockchain) y off-chain (base de datos) para optimizar costos, privacidad y funcionalidad.
+The Certunivertity system uses a **hybrid model** that separates on-chain (blockchain) and off-chain (database) data to optimize costs, privacy, and functionality.
 
-## Separación On-Chain / Off-Chain
+## On-Chain / Off-Chain Separation
 
-### Principio de Diseño
-- **On-chain**: Solo datos inmutables, esenciales para verificación
-- **Off-chain**: Datos complementarios, información sensible en texto plano
+### Design Principle
+- **On-chain**: Only immutable data essential for verification
+- **Off-chain**: Complementary data, sensitive information in plain text
 
-### Ventajas
-1. **Menor costo de gas**: Menos datos = menos gas
-2. **Privacidad mejorada**: Datos personales hasheados en blockchain
-3. **Flexibilidad**: Cambios off-chain sin modificar blockchain
-4. **Performance**: Queries rápidas en PostgreSQL
+### Advantages
+1. **Lower gas cost**: Less data = less gas
+2. **Enhanced privacy**: Personal data hashed on blockchain
+3. **Flexibility**: Off-chain changes without modifying blockchain
+4. **Performance**: Fast queries in PostgreSQL
 
 ---
 
-## Datos On-Chain (CertificateAuthority)
+## On-Chain Data (CertificateAuthority)
 
-### Estructura del Certificado
+### Certificate Structure
 
 ```solidity
 struct Certificate {
-    bytes32 certId;           // ID único del certificado
-    address university;       // Dirección Ethereum de la universidad
-    string certificateName;   // Nombre del certificado/título
-    bytes32 personNameHash;   // Hash keccak256 del nombre completo
-    bytes32 emailHash;        // Hash keccak256 del email
-    uint256 issueDate;        // Timestamp de emisión (segundos)
-    uint256 expirationDate;   // Timestamp de expiración (0 = nunca)
-    string metadataURI;       // URI a metadata adicional (IPFS, HTTP)
-    bool valid;               // Si el certificado está vigente
+    bytes32 certId;           // Unique certificate ID
+    address university;       // University's Ethereum address
+    string certificateName;   // Certificate/degree name
+    bytes32 personNameHash;   // keccak256 hash of full name
+    bytes32 emailHash;        // keccak256 hash of email
+    uint256 issueDate;        // Issue timestamp (seconds)
+    uint256 expirationDate;   // Expiration timestamp (0 = never)
+    string metadataURI;       // URI to additional metadata (IPFS, HTTP)
+    bool valid;               // Whether the certificate is valid
 }
 ```
 
-### Campos Detallados
+### Detailed Fields
 
 #### certId (bytes32)
-- **Tipo**: Hash único del certificado
-- **Generación**: `keccak256(abi.encodePacked(university, studentEmail, timestamp, nonce))`
-- **Propósito**: Identificador único e inmutable
-- **Uso**: Clave para todas las consultas
+- **Type**: Unique certificate hash
+- **Generation**: `keccak256(abi.encodePacked(university, studentEmail, timestamp, nonce))`
+- **Purpose**: Unique and immutable identifier
+- **Usage**: Key for all queries
 
 #### university (address)
-- **Tipo**: Dirección Ethereum (20 bytes)
-- **Fuente**: Wallet de MetaMask de la universidad
-- **Verificación**: La firma EIP-712 garantiza que proviene de esta address
-- **Importancia**: Prueba de quién emitió el certificado
+- **Type**: Ethereum address (20 bytes)
+- **Source**: University's MetaMask wallet
+- **Verification**: EIP-712 signature guarantees it comes from this address
+- **Importance**: Proof of who issued the certificate
 
 #### certificateName (string)
-- **Tipo**: Texto legible
-- **Ejemplos**:
-  - "Ingeniería en Informática"
-  - "Licenciatura en Administración de Empresas"
-  - "Maestría en Ciencias de Datos"
-- **Límite sugerido**: 100 caracteres
+- **Type**: Readable text
+- **Examples**:
+  - "Computer Engineering"
+  - "Bachelor of Business Administration"
+  - "Master of Data Science"
+- **Suggested Limit**: 100 characters
 
 #### personNameHash (bytes32)
-- **Tipo**: Hash keccak256
-- **Generación**: `keccak256(abi.encodePacked(nombreCompleto))`
-- **Ejemplo Input**: "Juan Carlos Pérez Rodríguez"
-- **Ejemplo Output**: `0x3f7a...d8c2`
-- **Privacidad**: No se puede revertir el hash sin conocer el input
-- **Verificación**: Terceros calculan el hash del nombre y lo comparan
+- **Type**: keccak256 hash
+- **Generation**: `keccak256(abi.encodePacked(fullName))`
+- **Example Input**: "Juan Carlos Pérez Rodríguez"
+- **Example Output**: `0x3f7a...d8c2`
+- **Privacy**: Cannot reverse the hash without knowing the input
+- **Verification**: Third parties calculate name hash and compare
 
 #### emailHash (bytes32)
-- **Tipo**: Hash keccak256
-- **Generación**: `keccak256(abi.encodePacked(email.toLowerCase()))`
-- **Ejemplo Input**: "juan.perez@universidad.edu"
-- **Ejemplo Output**: `0x9b2c...4f1a`
-- **Normalización**: Siempre lowercase antes de hashear
+- **Type**: keccak256 hash
+- **Generation**: `keccak256(abi.encodePacked(email.toLowerCase()))`
+- **Example Input**: "juan.perez@universidad.edu"
+- **Example Output**: `0x9b2c...4f1a`
+- **Normalization**: Always lowercase before hashing
 
 #### issueDate (uint256)
-- **Tipo**: Timestamp Unix (segundos desde 1970-01-01)
-- **Generación**: `Math.floor(Date.now() / 1000)` en backend
-- **Ejemplo**: `1735689600` → 2025-01-01 00:00:00 UTC
-- **Inmutable**: Nunca cambia después de emisión
+- **Type**: Unix timestamp (seconds since 1970-01-01)
+- **Generation**: `Math.floor(Date.now() / 1000)` in backend
+- **Example**: `1735689600` → 2025-01-01 00:00:00 UTC
+- **Immutable**: Never changes after issuance
 
 #### expirationDate (uint256)
-- **Tipo**: Timestamp Unix o 0
-- **Significado**:
-  - `0` → El certificado nunca expira
-  - `> 0` → Timestamp de expiración
-- **Validación**: El contrato verifica `block.timestamp <= expirationDate`
-- **Uso común**: La mayoría de títulos universitarios no expiran → `0`
+- **Type**: Unix timestamp or 0
+- **Meaning**:
+  - `0` → Certificate never expires
+  - `> 0` → Expiration timestamp
+- **Validation**: Contract verifies `block.timestamp <= expirationDate`
+- **Common usage**: Most university degrees don't expire → `0`
 
 #### metadataURI (string)
-- **Tipo**: URI/URL
-- **Formatos soportados**:
+- **Type**: URI/URL
+- **Supported Formats**:
   - IPFS: `ipfs://QmX...`
   - HTTP: `https://certunivertity.com/metadata/cert123`
-  - Datos inline: `data:application/json;base64,...`
-- **Contenido**: JSON con información adicional
-- **Opcional**: Puede estar vacío `""`
+  - Inline data: `data:application/json;base64,...`
+- **Content**: JSON with additional information
+- **Optional**: Can be empty `""`
 
 #### valid (bool)
-- **Tipo**: Booleano
-- **Estados**:
-  - `true` → Certificado válido y vigente
-  - `false` → Certificado revocado
-- **Cambio**: Solo el owner del contrato puede cambiar de `true` a `false`
-- **Irreversible**: Una vez revocado, no se puede reactivar (por diseño)
+- **Type**: Boolean
+- **States**:
+  - `true` → Valid and current certificate
+  - `false` → Revoked certificate
+- **Change**: Only contract owner can change from `true` to `false`
+- **Irreversible**: Once revoked, cannot be reactivated (by design)
 
 ---
 
-## Datos Off-Chain (PostgreSQL)
+## Off-Chain Data (PostgreSQL)
 
-### Tabla certificates
+### certificates Table
 
 ```sql
 CREATE TABLE certificates (
@@ -130,57 +130,57 @@ CREATE TABLE certificates (
 );
 ```
 
-### Campos Adicionales Off-Chain
+### Additional Off-Chain Fields
 
 #### id (SERIAL)
-- Clave primaria interna de PostgreSQL
-- No tiene relación con `cert_id`
+- PostgreSQL internal primary key
+- Not related to `cert_id`
 
 #### university_id (INTEGER)
-- Foreign key a tabla `universities`
-- Permite joins rápidos para mostrar nombre de universidad
+- Foreign key to `universities` table
+- Allows fast joins to display university name
 
 #### student_name (VARCHAR)
-- **Texto plano** del nombre completo del estudiante
-- Solo guardado off-chain
-- Usado para mostrar en el dashboard de la universidad
+- **Plain text** of student's full name
+- Only stored off-chain
+- Used to display in university's dashboard
 
 #### student_email (VARCHAR)
-- **Texto plano** del email del estudiante
-- Solo guardado off-chain
-- Usado para enviar notificaciones (futuro)
+- **Plain text** of student's email
+- Only stored off-chain
+- Used to send notifications (future)
 
 #### tx_hash (VARCHAR)
-- Hash de la transacción de Ethereum
-- Formato: `0x...` (66 caracteres)
-- Permite rastrear la transacción en Etherscan
+- Ethereum transaction hash
+- Format: `0x...` (66 characters)
+- Allows tracking transaction on Etherscan
 
 #### created_at / updated_at
-- Timestamps de PostgreSQL
-- Útiles para auditoría y debugging
+- PostgreSQL timestamps
+- Useful for auditing and debugging
 
 ---
 
-## Flujo de Hashing
+## Hashing Flow
 
-### Generación de Hashes (Backend)
+### Hash Generation (Backend)
 
 ```typescript
 import { ethers } from "ethers";
 
 function hashPersonName(name: string): string {
-  // Normalizar: trim y case-sensitive
+  // Normalize: trim and case-sensitive
   const normalized = name.trim();
   return ethers.keccak256(ethers.toUtf8Bytes(normalized));
 }
 
 function hashEmail(email: string): string {
-  // Normalizar: lowercase y trim
+  // Normalize: lowercase and trim
   const normalized = email.trim().toLowerCase();
   return ethers.keccak256(ethers.toUtf8Bytes(normalized));
 }
 
-// Ejemplo
+// Example
 const nameHash = hashPersonName("Juan Carlos Pérez");
 // → 0x3f7a...d8c2
 
@@ -188,48 +188,48 @@ const emailHash = hashEmail("juan.perez@uni.edu");
 // → 0x9b2c...4f1a
 ```
 
-### Verificación de Hashes (Terceros)
+### Hash Verification (Third Parties)
 
 ```typescript
-// Un empleador quiere verificar que el certificado pertenece a "Juan Pérez"
+// An employer wants to verify that the certificate belongs to "Juan Pérez"
 const certFromBlockchain = await contract.getCertificate(certId);
 
 const candidateName = "Juan Pérez";
 const candidateNameHash = hashPersonName(candidateName);
 
 if (candidateNameHash === certFromBlockchain.personNameHash) {
-  console.log("✅ El certificado pertenece a Juan Pérez");
+  console.log("✅ The certificate belongs to Juan Pérez");
 } else {
-  console.log("❌ El nombre no coincide");
+  console.log("❌ The name does not match");
 }
 ```
 
 ---
 
-## Metadata URI (Opcional)
+## Metadata URI (Optional)
 
-### Formato JSON Sugerido
+### Suggested JSON Format
 
 ```json
 {
-  "name": "Certificado de Ingeniería en Informática",
-  "description": "Título universitario otorgado por la Universidad XYZ",
+  "name": "Computer Engineering Certificate",
+  "description": "University degree awarded by XYZ University",
   "image": "ipfs://QmXXX.../diploma.png",
   "attributes": [
     {
-      "trait_type": "Universidad",
-      "value": "Universidad Nacional Autónoma"
+      "trait_type": "University",
+      "value": "National Autonomous University"
     },
     {
-      "trait_type": "Programa",
-      "value": "Ingeniería en Informática"
+      "trait_type": "Program",
+      "value": "Computer Engineering"
     },
     {
-      "trait_type": "Año de graduación",
+      "trait_type": "Graduation Year",
       "value": "2024"
     },
     {
-      "trait_type": "Mención",
+      "trait_type": "Honors",
       "value": "Cum Laude"
     }
   ],
@@ -237,43 +237,43 @@ if (candidateNameHash === certFromBlockchain.personNameHash) {
 }
 ```
 
-### Casos de Uso
-- **Imagen del diploma**: IPFS hash del PDF o imagen
-- **Atributos adicionales**: GPA, menciones, especialización
-- **Compatibilidad NFT**: Puede mostrarse en wallets como OpenSea
+### Use Cases
+- **Diploma image**: IPFS hash of PDF or image
+- **Additional attributes**: GPA, honors, specialization
+- **NFT compatibility**: Can be displayed in wallets like OpenSea
 
 ---
 
-## Privacidad y GDPR
+## Privacy and GDPR
 
-### Por qué usar hashes
+### Why Use Hashes
 
-1. **Blockchain es inmutable**: Datos en texto plano quedan expuestos para siempre
-2. **GDPR derecho al olvido**: En teoría, datos off-chain pueden borrarse
-3. **Verificación selectiva**: Solo quien conoce el nombre puede verificarlo
+1. **Blockchain is immutable**: Plain text data remains exposed forever
+2. **GDPR right to be forgotten**: In theory, off-chain data can be deleted
+3. **Selective verification**: Only those who know the name can verify it
 
-### Limitaciones
+### Limitations
 
-- **Rainbow tables**: Nombres comunes pueden ser descubiertos por fuerza bruta
-- **No es encriptación**: Hashing es one-way, no reversible con clave
-- **Mejor práctica**: Combinar con salt individual (no implementado en MVP)
+- **Rainbow tables**: Common names can be discovered by brute force
+- **Not encryption**: Hashing is one-way, not reversible with a key
+- **Best practice**: Combine with individual salt (not implemented in MVP)
 
-### Mejora Futura: Salted Hashes
+### Future Improvement: Salted Hashes
 
 ```typescript
-// Usar un salt único por certificado
+// Use a unique salt per certificate
 const salt = generateRandomSalt();
 const saltedHash = keccak256(concat([toUtf8Bytes(name), salt]));
 
-// Guardar el salt off-chain
-// Solo con el salt se puede verificar
+// Store the salt off-chain
+// Only with the salt can verification occur
 ```
 
 ---
 
-## Generación de certId
+## certId Generation
 
-### Método Actual
+### Current Method
 
 ```typescript
 function generateCertId(
@@ -291,26 +291,26 @@ function generateCertId(
 }
 ```
 
-### Garantías
-- **Unicidad**: Es casi imposible colisión con keccak256
-- **Determinismo**: Con los mismos inputs, mismo output
-- **No predecible**: Incluye timestamp y nonce
+### Guarantees
+- **Uniqueness**: Collision is nearly impossible with keccak256
+- **Determinism**: Same inputs produce same output
+- **Not predictable**: Includes timestamp and nonce
 
 ---
 
-## Diagrama de Flujo de Datos
+## Data Flow Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Emisión de Certificado                   │
+│                   Certificate Issuance                       │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
                     ┌──────────────────┐
                     │  Frontend Form   │
-                    │ - Nombre         │
+                    │ - Name           │
                     │ - Email          │
-                    │ - Certificado    │
+                    │ - Certificate    │
                     └──────────────────┘
                               │
                               ▼
@@ -329,8 +329,8 @@ function generateCertId(
                               ▼
                     ┌──────────────────┐
                     │  Backend API     │
-                    │ - Valida firma   │
-                    │ - Genera certId  │
+                    │ - Validates sig  │
+                    │ - Generates ID   │
                     └──────────────────┘
                               │
                     ┌─────────┴─────────┐
@@ -346,20 +346,20 @@ function generateCertId(
 
 ---
 
-## Ejemplo Completo
+## Complete Example
 
-### Datos de Entrada
+### Input Data
 ```json
 {
   "studentName": "María Fernanda González",
   "studentEmail": "maria.gonzalez@estudiante.edu",
-  "certificateName": "Licenciatura en Psicología",
+  "certificateName": "Bachelor of Psychology",
   "expirationDate": null,
   "metadataURI": "https://certunivertity.com/metadata/cert-12345"
 }
 ```
 
-### Procesamiento
+### Processing
 
 ```typescript
 const personNameHash = hashPersonName("María Fernanda González");
@@ -383,8 +383,8 @@ const certId = generateCertId(
 ### On-Chain
 ```
 certId: 0x9c44...
-university: 0x1234... (wallet de la universidad)
-certificateName: "Licenciatura en Psicología"
+university: 0x1234... (university wallet)
+certificateName: "Bachelor of Psychology"
 personNameHash: 0xa7b3...
 emailHash: 0x5f21...
 issueDate: 1735689600
@@ -399,21 +399,21 @@ cert_id: "0x9c44..."
 university_id: 42
 student_name: "María Fernanda González"
 student_email: "maria.gonzalez@estudiante.edu"
-certificate_name: "Licenciatura en Psicología"
+certificate_name: "Bachelor of Psychology"
 tx_hash: "0xabc..."
 ```
 
 ---
 
-## Consultas Comunes
+## Common Queries
 
-### 1. Verificar certificado por ID
+### 1. Verify certificate by ID
 ```typescript
 const cert = await contract.getCertificate(certId);
 const isValid = await contract.isCertificateValid(certId);
 ```
 
-### 2. Verificar certificado con nombre y email
+### 2. Verify certificate with name and email
 ```typescript
 const nameHash = hashPersonName("María Fernanda González");
 const emailHash = hashEmail("maria.gonzalez@estudiante.edu");
@@ -423,10 +423,10 @@ const matches = await contract.verifyCertificate(
   nameHash,
   emailHash
 );
-// → true si coincide
+// → true if matches
 ```
 
-### 3. Listar certificados de una universidad (off-chain)
+### 3. List university certificates (off-chain)
 ```sql
 SELECT * FROM certificates
 WHERE university_id = 42
@@ -436,14 +436,14 @@ LIMIT 10;
 
 ---
 
-## Conclusión
+## Conclusion
 
-El modelo híbrido de Certunivertity ofrece:
+Certunivertity's hybrid model offers:
 
-✅ **Inmutabilidad**: Datos críticos en blockchain
-✅ **Privacidad**: Hashes en lugar de texto plano
-✅ **Eficiencia**: Costos de gas optimizados
-✅ **Funcionalidad**: Queries rápidas en PostgreSQL
-✅ **Verificabilidad**: Cualquiera puede verificar con el hash
+✅ **Immutability**: Critical data on blockchain
+✅ **Privacy**: Hashes instead of plain text
+✅ **Efficiency**: Optimized gas costs
+✅ **Functionality**: Fast queries in PostgreSQL
+✅ **Verifiability**: Anyone can verify with the hash
 
-Este diseño es escalable, privado y cost-effective para un sistema de certificación universitaria.
+This design is scalable, private, and cost-effective for a university certification system.

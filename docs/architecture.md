@@ -1,65 +1,65 @@
-# Arquitectura de Certunivertity
+# Certunivertity Architecture
 
-## Visión General
+## Overview
 
-Certunivertity es un sistema completo de certificados universitarios verificables en blockchain que utiliza **meta-transacciones gasless** para ofrecer una experiencia de usuario sin fricciones.
+Certunivertity is a complete system for blockchain-verifiable university certificates that uses **gasless meta-transactions** to provide a frictionless user experience.
 
-## Componentes Principales
+## Main Components
 
 ### 1. Smart Contracts (Ethereum Sepolia)
 
 #### CertUniToken (ERC-20)
-- **Propósito**: Token que representa créditos de emisión de certificados
-- **Ratio**: 1 CERTUNI = 1 certificado que puede emitirse
-- **Funciones principales**:
-  - `mintFor(address, uint256)`: Solo el owner puede mintear tokens
-  - `burnFrom(address, uint256)`: Quema tokens al emitir certificados
-  - `balanceOfInWholeTokens(address)`: Consulta el balance en tokens enteros
+- **Purpose**: Token representing certificate issuance credits
+- **Ratio**: 1 CERTUNI = 1 certificate that can be issued
+- **Main Functions**:
+  - `mintFor(address, uint256)`: Only owner can mint tokens
+  - `burnFrom(address, uint256)`: Burns tokens when issuing certificates
+  - `balanceOfInWholeTokens(address)`: Query balance in whole tokens
 
 #### CertificateAuthority
-- **Propósito**: Registro inmutable de certificados universitarios
-- **Características**:
-  - Soporte para meta-transacciones (EIP-712)
-  - Privacidad mediante hashing de datos personales
-  - Validación y revocación de certificados
+- **Purpose**: Immutable registry of university certificates
+- **Features**:
+  - Support for meta-transactions (EIP-712)
+  - Privacy through hashing of personal data
+  - Certificate validation and revocation
 
-- **Funciones principales**:
-  - `issueCertificate(...)`: Emisión directa (solo owner)
-  - `issueCertificateWithSignature(...)`: Emisión con meta-transacción
-  - `revokeCertificate(bytes32)`: Revocación de certificados
-  - `isCertificateValid(bytes32)`: Verificación de validez
-  - `getCertificate(bytes32)`: Obtener datos del certificado
+- **Main Functions**:
+  - `issueCertificate(...)`: Direct issuance (owner only)
+  - `issueCertificateWithSignature(...)`: Issuance with meta-transaction
+  - `revokeCertificate(bytes32)`: Certificate revocation
+  - `isCertificateValid(bytes32)`: Validity verification
+  - `getCertificate(bytes32)`: Get certificate data
 
 ### 2. Backend (Next.js API Routes)
 
-#### Responsabilidades:
-1. **Relayer de transacciones**: Paga el gas de todas las transacciones on-chain
-2. **Gestión de usuarios**: Autenticación y autorización de universidades
-3. **Validación de créditos**: Verificar que la universidad tenga créditos antes de emitir
-4. **Interfaz con blockchain**: Conectar frontend con smart contracts
+#### Responsibilities:
+1. **Transaction Relayer**: Pays gas for all on-chain transactions
+2. **User Management**: Authentication and authorization for universities
+3. **Credit Validation**: Verify that the university has credits before issuing
+4. **Blockchain Interface**: Connect frontend with smart contracts
 
-#### Flujo de Meta-Transacciones:
+#### Meta-Transaction Flow:
 ```
-Usuario → Firma EIP-712 → Backend recibe firma → Valida → Envía tx → Blockchain
+User → EIP-712 Signature → Backend receives signature → Validates → Sends tx → Blockchain
 ```
 
 ### 3. Frontend (Next.js + React)
 
-#### Páginas principales:
-- **Landing** (`/`): Marketing y presentación del producto
-- **Registro** (`/register`): Registro de nuevas universidades
-- **Login** (`/login`): Autenticación
-- **Dashboard** (`/dashboard`): Panel de control de la universidad
-- **Verificación** (`/verify`): Verificación pública de certificados
+#### Main Pages:
+- **Landing** (`/`): Marketing and product presentation
+- **Register** (`/register`): Registration for new universities
+- **Login** (`/login`): Authentication
+- **Dashboard** (`/dashboard`): University control panel
+- **Verification** (`/verify`): Public certificate verification
 
-#### Integración Web3:
-- **ethers.js v6**: Para interacción con MetaMask
-- **EIP-712**: Para firmas estructuradas y seguras
-- **MetaMask**: Wallet del usuario (sin necesidad de ETH)
+#### Web3 Integration:
+- **ethers.js v6**: For MetaMask interaction
+- **EIP-712**: For structured and secure signatures
+- **MetaMask**: User wallet (no ETH required)
 
-### 4. Base de Datos (PostgreSQL)
+### 4. Database (PostgreSQL)
 
-#### Tablas:
+#### Tables:
 
 **universities**
 ```sql
@@ -93,95 +93,95 @@ created_at TIMESTAMP
 updated_at TIMESTAMP
 ```
 
-## Flujo de Datos
+## Data Flow
 
-### Registro de Universidad
+### University Registration
 ```
-1. Usuario completa formulario (nombre, email, password, wallet)
-2. Backend hashea password con bcrypt
-3. Se crea registro en PostgreSQL
+1. User completes form (name, email, password, wallet)
+2. Backend hashes password with bcrypt
+3. Record created in PostgreSQL
 4. Credits = 0, has_free_tokens_claimed = false
-5. Redirección a dashboard
+5. Redirect to dashboard
 ```
 
-### Obtención de Créditos Gratuitos
+### Obtaining Free Credits
 ```
-1. Usuario hace clic en "Obtener 5 créditos"
-2. Backend verifica has_free_tokens_claimed = false
-3. Backend llama a CertUniToken.mintFor(wallet, 5)
-4. Espera confirmación de transacción
-5. Actualiza DB: credits = 5, has_free_tokens_claimed = true
-6. Frontend actualiza UI
+1. User clicks "Get 5 free credits"
+2. Backend verifies has_free_tokens_claimed = false
+3. Backend calls CertUniToken.mintFor(wallet, 5)
+4. Waits for transaction confirmation
+5. Updates DB: credits = 5, has_free_tokens_claimed = true
+6. Frontend updates UI
 ```
 
-### Emisión de Certificado (Meta-Transacción)
+### Certificate Issuance (Meta-Transaction)
 ```
-1. Usuario llena formulario del certificado
-2. Frontend genera datos EIP-712
-3. MetaMask pide firma (sin enviar transacción)
-4. Frontend envía datos + firma al backend
-5. Backend valida:
-   - Créditos > 0
-   - Firma es válida
-   - Universidad existe
-6. Backend genera certId único (keccak256)
-7. Backend calcula hashes de nombre y email
-8. Backend llama a issueCertificateWithSignature()
-9. Paga el gas de la transacción
-10. Espera confirmación
-11. Actualiza DB:
+1. User fills out certificate form
+2. Frontend generates EIP-712 data
+3. MetaMask requests signature (without sending transaction)
+4. Frontend sends data + signature to backend
+5. Backend validates:
+   - Credits > 0
+   - Signature is valid
+   - University exists
+6. Backend generates unique certId (keccak256)
+7. Backend calculates name and email hashes
+8. Backend calls issueCertificateWithSignature()
+9. Pays transaction gas
+10. Waits for confirmation
+11. Updates DB:
     - credits -= 1
-    - Registra certificado con tx_hash
-12. Retorna éxito al frontend
+    - Registers certificate with tx_hash
+12. Returns success to frontend
 ```
 
-### Verificación de Certificado
+### Certificate Verification
 ```
-1. Usuario escanea QR o abre link con certId
-2. Frontend llama a /api/certificates/verify?certId=...
-3. Backend consulta CertificateAuthority.getCertificate()
-4. Backend verifica isCertificateValid()
-5. Backend opcionalmente cruza con DB para info adicional
-6. Retorna datos del certificado
-7. Frontend muestra:
-   - Universidad emisora
-   - Nombre del certificado
-   - Estado (válido/revocado)
-   - Fecha de emisión
-   - Info adicional
+1. User scans QR or opens link with certId
+2. Frontend calls /api/certificates/verify?certId=...
+3. Backend queries CertificateAuthority.getCertificate()
+4. Backend verifies isCertificateValid()
+5. Backend optionally cross-references with DB for additional info
+6. Returns certificate data
+7. Frontend displays:
+   - Issuing university
+   - Certificate name
+   - Status (valid/revoked)
+   - Issue date
+   - Additional info
 ```
 
-## Seguridad
+## Security
 
-### Meta-Transacciones (EIP-712)
-1. **Usuario firma offline**: No se envía transacción desde MetaMask
-2. **Backend es relayer**: Envía la transacción real
-3. **Contrato verifica firma**: Usa `ecrecover` para validar
-4. **Emisor real**: El certificado se registra con la wallet de la universidad, no del backend
+### Meta-Transactions (EIP-712)
+1. **User signs offline**: No transaction sent from MetaMask
+2. **Backend is relayer**: Sends the real transaction
+3. **Contract verifies signature**: Uses `ecrecover` to validate
+4. **Real issuer**: Certificate is registered with university's wallet, not backend
 
-### Privacidad
-- **Hashes on-chain**: Nombre y email se guardan hasheados en blockchain
-- **Datos completos off-chain**: Solo en PostgreSQL
-- **Verificación por hash**: Terceros pueden verificar sin exponer datos
+### Privacy
+- **On-chain hashes**: Name and email stored hashed on blockchain
+- **Complete data off-chain**: Only in PostgreSQL
+- **Hash verification**: Third parties can verify without exposing data
 
-### Autenticación
-- **Passwords hasheados**: bcrypt con salt
-- **NextAuth**: Sesiones seguras
-- **Wallet binding**: Cada universidad tiene una wallet única
+### Authentication
+- **Hashed passwords**: bcrypt with salt
+- **NextAuth**: Secure sessions
+- **Wallet binding**: Each university has a unique wallet
 
-## Tecnologías
+## Technologies
 
 ### Smart Contracts
 - Solidity 0.8.20
 - OpenZeppelin (ERC20, Ownable, ECDSA)
-- Hardhat (compilación y despliegue)
+- Hardhat (compilation and deployment)
 
 ### Backend
 - Next.js 15
 - TypeScript
 - ethers.js v6
 - PostgreSQL + pg driver
-- NextAuth para autenticación
+- NextAuth for authentication
 
 ### Frontend
 - React 19
@@ -189,37 +189,37 @@ updated_at TIMESTAMP
 - ethers.js v6
 - QR Code generation
 
-### Infraestructura
+### Infrastructure
 - Docker (PostgreSQL)
 - Ethereum Sepolia Testnet
 - Infura/Alchemy (RPC provider)
 
-## Escalabilidad
+## Scalability
 
-### Optimizaciones actuales:
-- Índices en PostgreSQL para queries rápidas
-- EIP-712 reduce gas costs vs transacciones normales
-- Relayer centralizado evita esperas del usuario
+### Current Optimizations:
+- PostgreSQL indexes for fast queries
+- EIP-712 reduces gas costs vs normal transactions
+- Centralized relayer avoids user waiting
 
-### Mejoras futuras:
-- Migrar a L2 (Polygon, Arbitrum) para costos menores
-- IPFS para almacenar metadata de certificados
-- Batch minting de tokens
-- Sistema de reputación para universidades
+### Future Improvements:
+- Migrate to L2 (Polygon, Arbitrum) for lower costs
+- IPFS for storing certificate metadata
+- Batch minting of tokens
+- Reputation system for universities
 
-## Limitaciones del MVP
+## MVP Limitations
 
-1. **Backend centralizado**: El relayer es un punto único de falla
-2. **Sin pagos reales**: Solo 5 créditos gratuitos por universidad
-3. **Testnet**: Sepolia no es producción
-4. **Sin KYC**: No se verifica identidad de universidades
-5. **Metadata simple**: No se usa IPFS u otros sistemas descentralizados
+1. **Centralized backend**: The relayer is a single point of failure
+2. **No real payments**: Only 5 free credits per university
+3. **Testnet**: Sepolia is not production
+4. **No KYC**: University identity is not verified
+5. **Simple metadata**: IPFS or other decentralized systems not used
 
-## Roadmap de Producción
+## Production Roadmap
 
-1. **Fase 1**: Sistema de pagos real (Stripe + mint automático)
-2. **Fase 2**: KYC para universidades verificadas
-3. **Fase 3**: Migración a mainnet o L2
-4. **Fase 4**: IPFS para metadata descentralizada
-5. **Fase 5**: API pública para terceros verificadores
-6. **Fase 6**: SDK para integración con sistemas universitarios existentes
+1. **Phase 1**: Real payment system (Stripe + automatic mint)
+2. **Phase 2**: KYC for verified universities
+3. **Phase 3**: Migration to mainnet or L2
+4. **Phase 4**: IPFS for decentralized metadata
+5. **Phase 5**: Public API for third-party verifiers
+6. **Phase 6**: SDK for integration with existing university systems
