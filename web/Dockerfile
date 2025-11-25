@@ -7,34 +7,38 @@ FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
+# Instalar pnpm
+RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
+
 # Copiar archivos de dependencias
-COPY package.json package-lock.json* ./
+COPY package.json pnpm-lock.yaml* ./
 
 # Instalar TODAS las dependencias (incluyendo dev) para el build
-RUN npm ci
+RUN pnpm install --no-frozen-lockfile
 
 # Etapa 2: Builder
 FROM node:20-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
+# Instalar pnpm
+RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
+
+# Copiar package.json primero para las dependencias
+COPY package.json pnpm-lock.yaml* ./
+
 # Copiar dependencias desde la etapa anterior
 COPY --from=deps /app/node_modules ./node_modules
+
+# Copiar el resto del código
 COPY . .
 
 # Variables de entorno necesarias para el build
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# URL dummy para Prisma durante el build (no se usa realmente)
-# La URL real se proporciona en runtime vía variables de entorno de Dokploy
-ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
-
-# Generar Prisma Client
-RUN npx prisma generate
-
 # Build de Next.js en modo standalone
-RUN npm run build
+RUN pnpm run build
 
 # Etapa 3: Runner (Producción)
 FROM node:20-alpine AS runner
@@ -56,13 +60,6 @@ COPY --from=builder /app/public ./public
 # Copiar el build standalone de Next.js
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Copiar Prisma Client generado
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-
-# Copiar schema de Prisma para migraciones
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
 # Copiar package.json para tener acceso a scripts si es necesario
 COPY --from=builder /app/package.json ./package.json
